@@ -83,7 +83,16 @@ for module in modules:
         deprecated = soup.find('table', bgcolor='#ff9090')
 
         for span in soup.find_all('span', id='Function'):
-            code = span.parent.next_sibling.next_sibling.next_sibling.next_sibling
+            banner = span.parent.next_sibling.next_sibling
+
+            if banner.name == 'table' and banner.attrs['bgcolor'] == '#ff9090':
+                logging.info("DEPRECATED")
+                continue
+
+            if banner.name == 'table':
+                code = banner.next_sibling.next_sibling.next_sibling.next_sibling
+            else:
+                code = banner.next_sibling.next_sibling
 
             if code is None or code.text is None:
                 continue
