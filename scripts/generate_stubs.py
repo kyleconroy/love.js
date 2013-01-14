@@ -82,26 +82,36 @@ for module in modules:
 
         deprecated = soup.find('table', bgcolor='#ff9090')
 
-        code = soup.find('div', attrs={'class': 'source-lua'})
+        for span in soup.find_all('span', id='Function'):
+            code = span.parent.next_sibling.next_sibling.next_sibling.next_sibling
 
-        if code is None or code.text is None:
-            continue
+            if code is None or code.text is None:
+                continue
 
-        try:
-            _, signature = code.text.split("=", 1)
-        except ValueError:
-            signature = code.text
+            try:
+                _, signature = code.text.split("=", 1)
+            except ValueError:
+                signature = code.text
 
-        signature = signature.replace(", ...", '')
-        name, args = signature.split("(", 1)
 
-        name = name.replace(module + ".", '').strip()
+            if not signature.strip().startswith("love"):
+                continue
 
-        body = "exports.{} = function({} {{\n".format(name, args)
-        body += "  //{}\n".format("deprecated??" if deprecated else "implement me")
-        body += "}\n"
+            logging.info(signature)
 
-        javascript += body
+            signature = signature.replace(", ...", '')
+            name, args = signature.split("(", 1)
+
+            name = name.replace(module + ".", '').strip()
+
+            try:
+                body = "exports.{} = function({} {{\n".format(name, args)
+                body += "  //{}\n".format("deprecated??" if deprecated else "implement me")
+                body += "}\n"
+            except UnicodeEncodeError:
+                pass
+
+            javascript += body
 
     with open("lib/love/{}.js".format(module.replace("love.", '')), 'w') as f:
         f.write(javascript)
