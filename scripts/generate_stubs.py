@@ -37,6 +37,7 @@ def fetch(path):
     if os.path.exists(html):
         return
 
+    logging.info("https://love2d.org/wiki/{}".format(path))
     urllib.urlretrieve("https://love2d.org/wiki/{}".format(path), html)
 
 
@@ -48,10 +49,12 @@ for module in modules:
     html = "wiki/{}.html".format(module)
     soup = BeautifulSoup(open(html))
 
-    table = soup.find('table', id='querytable2')
+    span = soup.find('span', id='Functions')
 
-    if table is None:
-        table = soup.find('table', id='querytable1')
+    if span is None:
+        logging.error("No functions")
+
+    table = span.parent.next_sibling.next_sibling
 
     for a in table.find_all('a'):
         func = a.text
@@ -89,6 +92,7 @@ for module in modules:
         except ValueError:
             signature = code.text
 
+        signature = signature.replace(", ...", '')
         name, args = signature.split("(", 1)
 
         name = name.replace(module + ".", '').strip()
